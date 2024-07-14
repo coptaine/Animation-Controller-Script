@@ -1,8 +1,9 @@
-import { system, world } from "@minecraft/server"
+import { world } from "@minecraft/server"
 
 let savedStates = {}
 
 const stateMachinesHandler = (target, controllerName) => {
+  //  --- States should always have onEntry, onExit and transitions. --- //
   const stateMachines = {
     superJumpController: {
       defaultState: "default",
@@ -53,19 +54,18 @@ export class StateMachine {
  */
   static run(target, controllerName) {
     const controller = stateMachinesHandler(target, controllerName)
-    const states = Object.entries(controller.states)
     const controllerId = `${controllerName}_${target.id}`
-    for (const [stateName, stateValue] of states) {
+    for (const state in controller.states) {
       if (!savedStates[controllerId]?.currentState) {
         savedStates[controllerId] = { currentState: controller.defaultState, executed: false }
       }
       const currentState = savedStates[controllerId].currentState
-      if (currentState != stateName) continue
+      if (currentState != state) continue
       let executed = false
-      for (const transition of Object.entries(stateValue.transitions)) {
-        if (Object.values(transition[1]).includes(true) && !executed) {
-          const nextState = Object.keys(transition[1])[0]
-          stateValue.onExit()
+      for (const transition of controller.states[state].transitions) {
+        if (Object.values(transition).includes(true) && !executed) {
+          const nextState = Object.keys(transition)
+          controller.states[state].onExit()
           controller.states[nextState].onEntry()
           savedStates[controllerId].currentState = nextState
           savedStates[controllerId].executed = true
@@ -77,7 +77,8 @@ export class StateMachine {
 }
 
 export const savedStatesCleaner = world.afterEvents.entityRemove.subscribe((event) => {
-  const id = event.removedEntityId
+  const { id, typeId } = event.removedEntityId
+  if (typeId === "minecraft:player") return
   for (controllerId in savedStates) {
     if (controllerId.includes(id)) {
       delete savedStates[controllerId]
