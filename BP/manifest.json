@@ -1,0 +1,29 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "pack.name",
+    "description": "pack.description",
+    "uuid": "320f753b-d290-4e0f-a175-8ac53d3294b8",
+    "version": [ 1, 0, 0 ],
+    "min_engine_version": [ 1, 20, 0 ]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "uuid": "9f546531-7ee6-4932-bc80-164322cff898",
+      "description": "Animation Controller Script",
+      "version": [ 1, 0, 0 ],
+      "entry": "scripts/coptaine_state_machine/main.js",
+      "language": "javascript"
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "1.11.0"
+    }
+  ],
+  "metadata": {
+    "authors": [ "Coptaine" ]
+  }
+}
