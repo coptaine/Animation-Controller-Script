@@ -88,7 +88,7 @@ export class StateMachine {
 }
 
 export const savedStatesCleaner = world.afterEvents.entityRemove.subscribe((event) => {
-  const { id } = event.removedEntityId
+  const id = event.removedEntityId
   for (const controllerId in savedStates) {
     if (controllerId.includes(id)) {
       delete savedStates[controllerId]
