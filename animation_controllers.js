@@ -3,7 +3,7 @@ import { world } from "@minecraft/server"
 let savedStates = {}
 
 const stateMachinesHandler = (target, controllerName) => {
-  //  --- States should always have onEntry, onExit and transitions. --- //
+  //  --- Add your animation controllers here. States should always have onEntry, onExit and transitions. --- //
   const stateMachines = {
     superJumpController: {
       defaultState: "default",
@@ -19,7 +19,7 @@ const stateMachinesHandler = (target, controllerName) => {
         sneak: {
           onEntry: () => {
             target.sendMessage("I'm sneaking!")
-            target.addEffect("instant_health", 20)
+            target.addEffect("regeneration", 20)
           },
           onExit: () => {
             target.sendMessage("I'm not sneaking anymore!")
@@ -34,6 +34,7 @@ const stateMachinesHandler = (target, controllerName) => {
           },
           onExit: () => {
             target.sendMessage("I landed!")
+            target.dimension.spawnEntity("fireworks_rocket", target.location)
           },
           transitions: [
             { default: target.isOnGround }
@@ -44,6 +45,11 @@ const stateMachinesHandler = (target, controllerName) => {
   }
   return stateMachines[controllerName]
 }
+
+
+
+
+
 
 export class StateMachine {
   /**
@@ -56,19 +62,24 @@ export class StateMachine {
     const controller = stateMachinesHandler(target, controllerName)
     const controllerId = `${controllerName}_${target.id}`
     for (const state in controller.states) {
-      if (!savedStates[controllerId]?.currentState) {
-        savedStates[controllerId] = { currentState: controller.defaultState, executed: false }
+      if (!savedStates[controllerId]) {
+        savedStates[controllerId] = {
+          currentState: controller.defaultState,
+          hasEntered: false
+        }
       }
       const currentState = savedStates[controllerId].currentState
       if (currentState != state) continue
-      let executed = false
+      if (!savedStates[controllerId].hasEntered) {
+        controller.states[state].onEntry()
+        savedStates[controllerId].hasEntered = true
+      }
       for (const transition of controller.states[state].transitions) {
-        if (Object.values(transition).includes(true) && !executed) {
+        if (Object.values(transition).includes(true)) {
           const nextState = Object.keys(transition)
           controller.states[state].onExit()
-          controller.states[nextState].onEntry()
           savedStates[controllerId].currentState = nextState
-          savedStates[controllerId].executed = true
+          savedStates[controllerId].hasEntered = false
           break
         }
       }
@@ -77,9 +88,8 @@ export class StateMachine {
 }
 
 export const savedStatesCleaner = world.afterEvents.entityRemove.subscribe((event) => {
-  const { id, typeId } = event.removedEntityId
-  if (typeId === "minecraft:player") return
-  for (controllerId in savedStates) {
+  const { id } = event.removedEntityId
+  for (const controllerId in savedStates) {
     if (controllerId.includes(id)) {
       delete savedStates[controllerId]
     }
