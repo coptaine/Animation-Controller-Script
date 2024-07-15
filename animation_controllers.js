@@ -3,39 +3,43 @@ import { world } from "@minecraft/server"
 let savedStates = {}
 
 const stateMachinesHandler = (target, controllerName) => {
-  //  --- Add your animation controllers here. States should always have onEntry, onExit and transitions. --- //
   const stateMachines = {
-    superJumpController: {
+    /* 
+    * Add your animation controllers here.
+    * onEntry, onExit and transitions can be omitted if not needed.
+    */
+    doubleJumpController: {
       defaultState: "default",
       states: {
         default: {
           onEntry: () => {},
           onExit: () => {},
           transitions: [
-            { sneak: target.isSneaking },
             { jump: target.isJumping }
           ]
         },
-        sneak: {
-          onEntry: () => {
-            target.sendMessage("I'm sneaking!")
-            target.addEffect("regeneration", 20)
-          },
-          onExit: () => {
-            target.sendMessage("I'm not sneaking anymore!")
-          },
+        jump: {
+          onEntry: () => {},
+          onExit: () => {},
           transitions: [
-            { default: !target.isSneaking }
+            { default: target.isOnGround },
+            { doubleJumpInit: !target.isJumping && !target.isOnGround }
           ]
         },
-        jump: {
+        doubleJumpInit: {
+          onEntry: () => {},
+          onExit: () => {},
+          transitions: [
+            { default: target.isOnGround },
+            { doubleJump: target.isJumping && !target.isOnGround }
+          ]
+        },
+        doubleJump: {
           onEntry: () => {
-            target.sendMessage("I jumped!")
+            target.applyKnockback(target.location.x, target.location.z, 0, 0.75)
+            target.dimension.spawnParticle("minecraft:egg_destroy_emitter", target.location)
           },
-          onExit: () => {
-            target.sendMessage("I landed!")
-            target.dimension.spawnEntity("fireworks_rocket", target.location)
-          },
+          onExit: () => {},
           transitions: [
             { default: target.isOnGround }
           ]
@@ -71,13 +75,14 @@ export class StateMachine {
       const currentState = savedStates[controllerId].currentState
       if (currentState != state) continue
       if (!savedStates[controllerId].hasEntered) {
-        controller.states[state].onEntry()
+        if (typeof controller.states[state].onEntry === "function") controller.states[state].onEntry()
         savedStates[controllerId].hasEntered = true
       }
+      if (!controller.states[state]?.transitions) break
       for (const transition of controller.states[state].transitions) {
         if (Object.values(transition).includes(true)) {
           const nextState = Object.keys(transition)
-          controller.states[state].onExit()
+          if (typeof controller.states[state].onExit === "function") controller.states[state].onExit()
           savedStates[controllerId].currentState = nextState
           savedStates[controllerId].hasEntered = false
           break
