@@ -3,6 +3,9 @@ import { world } from "@minecraft/server"
 let savedStates = {}
 
 const stateMachinesHandler = (target, controllerName) => {
+  // For easy saving and retrieving variables. Use v. + variable name //
+  const v = savedStates[`${controllerName}_${target.id}`] ?? {}
+
   const stateMachines = {
     /* 
     * Add your animation controllers here.
@@ -14,7 +17,7 @@ const stateMachinesHandler = (target, controllerName) => {
       states: {
         default: {
           transitions: [
-            { jump: target.isJumping }
+            { jump: !target.isSneaking && target.isJumping }
           ]
         },
         jump: {
@@ -34,6 +37,40 @@ const stateMachinesHandler = (target, controllerName) => {
           onEntry: () => {
             target.applyKnockback(target.location.x, target.location.z, 0, 0.75)
             target.dimension.spawnParticle("minecraft:egg_destroy_emitter", target.location)
+          },
+          transitions: [
+            { default: target.isOnGround }
+          ]
+        }
+      }
+    },
+    superJumpController: { 
+      defaultState: "default",
+      states: {
+        default: {
+          onEntry: () => { 
+            v.charged = 0 },
+          transitions: [
+            { charge: target.isSneaking }
+          ]
+        },
+        charge: {
+          loop: true,
+          onEntry: () => {
+            if (!v.charged) v.charged = 0
+            v.charged += 1
+            target.onScreenDisplay.setActionBar(`§7Jump Power: §a${(v.charged / 2).toFixed(2)}`)
+          },
+          transitions: [
+            { default: !target.isSneaking },
+            { superJump: target.isJumping }
+          ]
+        },
+        superJump: {
+          onEntry: () => {
+            target.applyKnockback(target.location.x, target.location.z, 0, v.charged * 0.05)
+            target.dimension.spawnParticle("minecraft:egg_destroy_emitter", target.location)
+            v.charged = 0
           },
           transitions: [
             { default: target.isOnGround }
