@@ -49,16 +49,17 @@ const stateMachinesHandler = (target, controllerName) => {
       states: {
         default: {
           onEntry: () => { 
-            v.charged = 0 },
+            v.charged = 0
+          },
           transitions: [
-            { charge: target.isSneaking }
+            { charge: target.isSneaking && target.isOnGround }
           ]
         },
         charge: {
           loop: true,
           onEntry: () => {
             if (!v.charged) v.charged = 0
-            v.charged += 1
+            v.charged++
             target.onScreenDisplay.setActionBar(`§7Jump Power: §a${(v.charged / 2).toFixed(2)}`)
           },
           transitions: [
@@ -74,6 +75,26 @@ const stateMachinesHandler = (target, controllerName) => {
           },
           transitions: [
             { default: target.isOnGround }
+          ]
+        }
+      }
+    },
+    elytraController: {
+      defaultState: "default",
+      states: {
+        default: {
+          onEntry: () => {},
+          transitions: [
+            { boost: target.isGliding && target.isSneaking }
+          ]
+        },
+        boost: {
+          loop: true,
+          onEntry: () => {
+            target.applyKnockback(target.getViewDirection().x, target.getViewDirection().z, 1.0, target.getViewDirection().y * 2)
+          },
+          transitions: [
+            { default: !target.isGliding || !target.isSneaking }
           ]
         }
       }
