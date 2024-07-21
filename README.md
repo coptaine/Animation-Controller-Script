@@ -12,3 +12,6 @@ To use, import StateMachine and savedStatesCleaner then put StateMachine inside 
 
 ![image](https://github.com/user-attachments/assets/6176e2a3-a686-4e8e-a617-45a0fe23e906)
 
+Here's the video of how the example pack works.
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/jDQZ9iBM3j0/0.jpg)]([https://www.youtube.com/watch?v=jDQZ9iBM3j0]([https://streamable.com/c1vcsm](https://youtu.be/jDQZ9iBM3j0)))
