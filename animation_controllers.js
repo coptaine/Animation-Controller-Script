@@ -118,13 +118,13 @@ export class StateMachine {
   static run(target, controllerName) {
     const controller = stateMachinesHandler(target, controllerName)
     const controllerId = `${controllerName}_${target.id}`
-    for (const state in controller.states) {
-      if (!savedStates[controllerId]) {
-        savedStates[controllerId] = {
-          currentState: controller.defaultState,
-          hasEntered: false
-        }
+    if (!savedStates[controllerId]) {
+      savedStates[controllerId] = {
+        currentState: controller.defaultState,
+        hasEntered: false
       }
+    }
+    for (const state in controller.states) {
       const currentState = savedStates[controllerId].currentState
       if (currentState != state) continue
       if (!savedStates[controllerId].hasEntered) {
