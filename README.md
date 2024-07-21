@@ -1,6 +1,6 @@
 # Animation Controller Script
 
-This script makes it easier to use a state machine with a vanilla animation controller strcuture.
+This script makes it easier to use a state machine with a vanilla animation controller structure.
 
 
 
