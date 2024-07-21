@@ -14,4 +14,4 @@ To use, import StateMachine and savedStatesCleaner then put StateMachine inside 
 
 Here's the video of how the example pack works.
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/jDQZ9iBM3j0/0.jpg)]([https://www.youtube.com/watch?v=jDQZ9iBM3j0]([https://streamable.com/c1vcsm](https://youtu.be/jDQZ9iBM3j0)))
+[![YouTube](http://i.ytimg.com/vi/jDQZ9iBM3j0/hqdefault.jpg)](https://www.youtube.com/watch?v=jDQZ9iBM3j0)
