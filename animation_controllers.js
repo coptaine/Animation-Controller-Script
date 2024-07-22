@@ -1,11 +1,6 @@
-import { world } from "@minecraft/server"
-
-let savedStates = {}
+import { world, system } from "@minecraft/server"
 
 const stateMachinesHandler = (target, controllerName) => {
-  // For easy saving and retrieving variables. Use v. + variable name //
-  const v = savedStates[`${controllerName}_${target.id}`] ?? {}
-
   const stateMachines = {
     /* 
     * Add your animation controllers here.
@@ -49,7 +44,7 @@ const stateMachinesHandler = (target, controllerName) => {
       states: {
         default: {
           onEntry: () => { 
-            v.charged = 0
+            target.charged = 0
           },
           transitions: [
             { charge: target.isSneaking && target.isOnGround }
@@ -58,9 +53,8 @@ const stateMachinesHandler = (target, controllerName) => {
         charge: {
           loop: true,
           onEntry: () => {
-            if (!v.charged) v.charged = 0
-            v.charged++
-            target.onScreenDisplay.setActionBar(`§7Jump Power: §a${(v.charged / 2).toFixed(2)}`)
+            target.charged++
+            target.onScreenDisplay.setActionBar(`§7Jump Power: §a${(target.charged / 2).toFixed(2)}`)
           },
           transitions: [
             { default: !target.isSneaking },
@@ -69,9 +63,8 @@ const stateMachinesHandler = (target, controllerName) => {
         },
         superJump: {
           onEntry: () => {
-            target.applyKnockback(target.location.x, target.location.z, 0, v.charged * 0.05)
+            target.applyKnockback(target.location.x, target.location.z, 0, target.charged * 0.05)
             target.dimension.spawnParticle("minecraft:egg_destroy_emitter", target.location)
-            v.charged = 0
           },
           transitions: [
             { default: target.isOnGround }
@@ -79,7 +72,7 @@ const stateMachinesHandler = (target, controllerName) => {
         }
       }
     },
-    elytraController: {
+    elytraBoostController: {
       defaultState: "default",
       states: {
         default: {
@@ -118,38 +111,29 @@ export class StateMachine {
   static run(target, controllerName) {
     const controller = stateMachinesHandler(target, controllerName)
     const controllerId = `${controllerName}_${target.id}`
-    if (!savedStates[controllerId]) {
-      savedStates[controllerId] = {
+    if (!target[controllerId]) {
+      target[controllerId] = {
         currentState: controller.defaultState,
         hasEntered: false
       }
     }
     for (const state in controller.states) {
-      const currentState = savedStates[controllerId].currentState
+      const currentState = target[controllerId].currentState
       if (currentState != state) continue
-      if (!savedStates[controllerId].hasEntered) {
+      if (!target[controllerId].hasEntered) {
         if (typeof controller.states[state].onEntry === "function") controller.states[state].onEntry()
-        if (!controller.states[state].loop) savedStates[controllerId].hasEntered = true
+        if (!controller.states[state].loop) target[controllerId].hasEntered = true
       }
       if (!controller.states[state].transitions) break
       for (const transition of controller.states[state].transitions) {
         if (Object.values(transition).includes(true)) {
           const nextState = Object.keys(transition)
           if (typeof controller.states[state].onExit === "function") controller.states[state].onExit()
-          savedStates[controllerId].currentState = nextState
-          savedStates[controllerId].hasEntered = false
+          target[controllerId].currentState = nextState
+          target[controllerId].hasEntered = false
           break
         }
       }
     }
   }
 }
-
-export const savedStatesCleaner = world.afterEvents.entityRemove.subscribe((event) => {
-  const id = event.removedEntityId
-  for (const controllerId in savedStates) {
-    if (controllerId.includes(id)) {
-      delete savedStates[controllerId]
-    }
-  }
-})
