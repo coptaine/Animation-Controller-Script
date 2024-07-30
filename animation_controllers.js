@@ -5,10 +5,10 @@ const stateMachinesHandler = (target, controllerName) => {
     /* 
     * Add your animation controllers here.
     * onEntry, onExit, transitions and loop can be omitted if not needed.
+    * If defaultState is omitted, the first state will be the default state.
     * The loop property determines if the onEntry function should always run until the state exits.
     */
     doubleJumpController: {
-      defaultState: "default",
       states: {
         default: {
           transitions: [
@@ -113,7 +113,7 @@ export class StateMachine {
     const controllerId = `${controllerName}_${target.id}`
     if (!target[controllerId]) {
       target[controllerId] = {
-        currentState: controller.defaultState,
+        currentState: controller.defaultState ?? Object.keys(controller.states)[0],
         hasEntered: false
       }
     }
