@@ -1,10 +1,22 @@
 import { world, system, Entity, DimensionTypes } from "@minecraft/server"
 
+function generateUniqueKey() {
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	let key = ""
+	for (let i = 0; i < 10; i++) {
+		key += characters[Math.floor(Math.random() * characters.length)]
+	}
+	return key + "_"
+}
+
+const UNIQUE_KEY = generateUniqueKey()
+
 /**
  * @remarks A class for handling state machines.
  * @example
  * const DoubleJump = new StateMachines(actor => {
 	const data = {
+		name: "doubleJump",
 		states: {
 			"default": {
 				transitions: [
@@ -46,7 +58,7 @@ export class StateMachines {
 	}
 
 	#run(actor, controller) {
-		const controllerId = `${controller.name}_${actor.id}`
+		const controllerId = UNIQUE_KEY + controller.name
 		if (!actor[controllerId]) {
 			actor[controllerId] = {
 				states: Object.keys(controller.states),

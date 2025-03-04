@@ -1,8 +1,10 @@
 import { system, Entity } from "@minecraft/server"
 import { StateMachines } from "./StateMachines"
 
+// Declaring the state machine
 const DoubleJump = new StateMachines(actor => {
      return {
+		name: "doubleJump", // any name, must be unique
           states: {
                "default": {
                     transitions: [
@@ -35,4 +37,13 @@ const DoubleJump = new StateMachines(actor => {
      }
 })
 
+// Activating the state machine
 DoubleJump.activate("minecraft:player")
+
+// Deactivating the state machine
+system.afterEvents.scriptEventReceive.subscribe(e => {
+     if (e.id == "coptaine:deactivate_double_jump") {
+          DoubleJump.deactivate()
+     }
+})
+
