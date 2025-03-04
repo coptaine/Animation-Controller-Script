@@ -3,7 +3,8 @@
 This script makes it easier to use a state machine with a vanilla animation controller structure.
 To use, import StateMachine then follow this structure:
 
-![Screenshot 2025-03-04 171243](https://github.com/user-attachments/assets/3ae1d2c9-f582-4a0e-be5b-56f67daf78e2)
+![Screenshot 2025-03-04 192553](https://github.com/user-attachments/assets/f09b7ec6-1ac7-4695-ad2d-e867a9eabd05)
+
 
 Note: You can omit onEntry, onExit and transitions if you don't need them.
 
