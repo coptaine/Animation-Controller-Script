@@ -1,89 +1,91 @@
 import { world, system, Entity, DimensionTypes } from "@minecraft/server"
 
 function generateUniqueKey() {
-	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	let key = ""
 	for (let i = 0; i < 10; i++) {
 		key += characters[Math.floor(Math.random() * characters.length)]
 	}
-	return key + "_"
+	return "stateMachine_" + key
 }
-
-const UNIQUE_KEY = generateUniqueKey()
 
 /**
  * @remarks A class for handling state machines.
  * @example
  * const DoubleJump = new StateMachines(actor => {
-	const data = {
-		name: "doubleJump",
-		states: {
-			"default": {
-				transitions: [
-					{ "jump": !actor.isSneaking && actor.isJumping }
-				]
-			},
-			"jump": {
-				transitions: [
-					{ "default": actor.isOnGround },
-					{ "doubleJumpInit": !actor.isJumping && !actor.isOnGround }
-				]
-			},
-			"doubleJumpInit": {
-				transitions: [
-					{ "default": actor.isOnGround },
-					{ "doubleJump": actor.isJumping && !actor.isOnGround }
-				],
-				onExit: () => actor.doubleJumpTick = system.currenTick
-			},
-			"doubleJump": {
-				onEntry: () => {
-					actor.applyKnockback(actor.location.x, actor.location.z, 0, 0.75)
-					actor.dimension.spawnParticle("minecraft:egg_destroy_emitter", actor.location)
-				},
-				transitions: [
-					{ "default": actor.isOnGround }
-				]
-			}
-		}
-	}
-	return data
+	return {
+        states: {
+            "default": {
+                transitions: [
+                    { "jump": !actor.isSneaking && actor.isJumping }
+                ]
+            },
+            "jump": {
+                transitions: [
+                    { "default": actor.isOnGround },
+                    { "doubleJumpInit": !actor.isJumping && !actor.isOnGround }
+                ]
+            },
+            "doubleJumpInit": {
+                transitions: [
+                    { "default": actor.isOnGround },
+                    { "doubleJump": actor.isJumping && !actor.isOnGround }
+                ],
+                onExit: () => actor.doubleJumpTick = system.currenTick
+            },
+            "doubleJump": {
+                onEntry: () => {
+                    actor.applyKnockback(actor.location.x, actor.location.z, 0, 0.75)
+                    actor.dimension.spawnParticle("minecraft:egg_destroy_emitter", actor.location)
+                },
+                transitions: [
+                    { "default": actor.isOnGround }
+                ]
+            }
+        }
+    }
 })
 */
 export class StateMachines {
+	#Id
 	#isActive
 	constructor(controller) {
 		this.controller = controller
 		this.#isActive = true
+		this.#generateId()
+	}
+
+	#generateId() {
+		this.#Id = generateUniqueKey()
 	}
 
 	#run(actor, controller) {
-		const controllerId = UNIQUE_KEY + controller.name
+		const controllerId = this.#Id
+		const states = controller.states
+		
 		if (!actor[controllerId]) {
 			actor[controllerId] = {
-				states: Object.keys(controller.states),
 				currentState: controller.initialState ?? Object.keys(controller.states)[0],
-				hasEntered: false
+				isRunning: false
 			}
 		}
-
+		
 		const actorState = actor[controllerId]
 		const currentState = controller.states[actorState.currentState]
 
-		if (!actorState.hasEntered) {
+		if (!actorState.isRunning) {
 			if (typeof currentState.onEntry == "function") currentState.onEntry()
-			actorState.hasEntered = true
+			actorState.isRunning = true
 			return
 		}
-
 		if (!currentState.transitions || !currentState.transitions.length) return
+
 		for (const transition of currentState.transitions) {
 			if (Object.values(transition).includes(true)) {
 				const nextState = Object.keys(transition)
 				if (typeof currentState.onExit == "function") currentState.onExit()
-				if (typeof controller.states[nextState].onEntry == "function") controller.states[nextState].onEntry()
+				if (typeof states[nextState].onEntry == "function") states[nextState].onEntry()
 				actorState.currentState = nextState
-				actorState.hasEntered = true
 				return
 			}
 		}

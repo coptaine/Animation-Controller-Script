@@ -4,7 +4,6 @@ import { StateMachines } from "./StateMachines"
 // Declaring the state machine
 const DoubleJump = new StateMachines(actor => {
      return {
-		name: "doubleJump", // any name, must be unique
           states: {
                "default": {
                     transitions: [
