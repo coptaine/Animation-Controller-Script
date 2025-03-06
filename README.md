@@ -11,5 +11,3 @@ Notes:
 
 You can omit onEntry, onExit, and transitions if they are not needed.
 
-To make a state machine persistent, pass true as the second argument in the activate method.
-
