@@ -90,7 +90,7 @@ export class StateMachines {
 		if (!actorState.isRunning) {
 			if (typeof currentState.onEntry == "function") currentState.onEntry()
 			actorState.isRunning = true
-			actor.setDynamicProperty(controllerId, JSON.stringify(actorState))
+			if (persistent) actor.setDynamicProperty(controllerId, JSON.stringify(actorState))
 			return
 		}
 		if (!currentState.transitions || !currentState.transitions.length) return
@@ -101,7 +101,7 @@ export class StateMachines {
 				if (typeof currentState.onExit == "function") currentState.onExit()
 				if (typeof states[nextState].onEntry == "function") states[nextState].onEntry()
 				actorState.currentState = nextState
-				actor.setDynamicProperty(controllerId, JSON.stringify(actorState))
+				if (persistent) actor.setDynamicProperty(controllerId, JSON.stringify(actorState))
 				return
 			}
 		}
@@ -123,6 +123,7 @@ export class StateMachines {
 			if (typeof actor != "string") return this.#run(actor, this.controller(actor), persistent)
 			if (actor == "minecraft:player") {
 				for (const player of world.getPlayers()) {
+					if (!player.isValid()) continue
 					this.#run(player, this.controller(player), persistent)
 				}
 				return
@@ -130,6 +131,7 @@ export class StateMachines {
 
 			for (const dimension of DimensionTypes.getAll()) {
 				for (const entity of world.getDimension(dimension.typeId).getEntities({ type: actor })) {
+					if (!entity.isValid()) continue
 					this.#run(entity, this.controller(entity), persistent)
 				}
 			}
