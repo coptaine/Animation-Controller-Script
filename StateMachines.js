@@ -59,38 +59,21 @@ export class StateMachines {
 		this.#Id = generateUniqueKey()
 	}
 
-	#run(actor, controller, persistent) {
+	#run(actor, controller) {
 		const states = controller.states
-		let controllerId = persistent ? controller.toString().replace(/\s+/g, "") : this.#Id
-		let actorState
 
-		if (persistent) {
-			const data = actor.getDynamicProperty(controllerId)
-
-			if (data) {
-				actorState = JSON.parse(data)
-			} else {
-				actorState = {
-					currentState: Object.keys(controller.states)[0],
-					isRunning: false
-				}
-				actor.setDynamicProperty(controllerId, JSON.stringify(actorState))
-			}
-		} else {
-			if (!actor[controllerId]) {
-				actorState = {
-					currentState: Object.keys(controller.states)[0],
-					isRunning: false
-				}
+		if (!actor[this.#Id]) {
+			actor[this.#Id] = {
+				currentState: Object.keys(states)[0],
+				isRunning: false
 			}
 		}
-
+		const actorState = actor[this.#Id]
 		const currentState = controller.states[actorState.currentState]
 
 		if (!actorState.isRunning) {
 			if (typeof currentState.onEntry == "function") currentState.onEntry()
 			actorState.isRunning = true
-			if (persistent) actor.setDynamicProperty(controllerId, JSON.stringify(actorState))
 			return
 		}
 		if (!currentState.transitions || !currentState.transitions.length) return
@@ -101,7 +84,6 @@ export class StateMachines {
 				if (typeof currentState.onExit == "function") currentState.onExit()
 				if (typeof states[nextState].onEntry == "function") states[nextState].onEntry()
 				actorState.currentState = nextState
-				if (persistent) actor.setDynamicProperty(controllerId, JSON.stringify(actorState))
 				return
 			}
 		}
@@ -109,22 +91,19 @@ export class StateMachines {
 
 	/**
 	 * Activates the state machine, causing it to execute every tick.
-	 *
 	 * @param {string | Entity} actor - The entity instance or entity identifier to apply the state machine to.
-	 * @param {boolean} [persistent=false] - Whether the state persists after exiting the world.
-	 *   
 	 * @remarks
 	 * - If a string (entity identifier) is provided, the state machine will be applied to all entities of that type.
 	 * - If an `Entity` instance is provided, only that specific entity will be affected.
 	 */
-	activate(actor, persistent = false) {
+	activate(actor) {
 		const newController = system.runInterval(() => {
 			if (!this.#isActive) system.clearRun(newController)
-			if (typeof actor != "string") return this.#run(actor, this.controller(actor), persistent)
+			if (typeof actor != "string") return this.#run(actor, this.controller(actor))
 			if (actor == "minecraft:player") {
 				for (const player of world.getPlayers()) {
 					if (!player.isValid()) continue
-					this.#run(player, this.controller(player), persistent)
+					this.#run(player, this.controller(player))
 				}
 				return
 			}
@@ -132,7 +111,7 @@ export class StateMachines {
 			for (const dimension of DimensionTypes.getAll()) {
 				for (const entity of world.getDimension(dimension.typeId).getEntities({ type: actor })) {
 					if (!entity.isValid()) continue
-					this.#run(entity, this.controller(entity), persistent)
+					this.#run(entity, this.controller(entity))
 				}
 			}
 		}, 1)

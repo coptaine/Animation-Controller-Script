@@ -40,15 +40,12 @@ import { Entity } from "@minecraft/server"
 export declare class StateMachines {
 	/**
 	 * Activates the state machine, causing it to execute every tick.
-	 *
 	 * @param {string | Entity} actor - The entity instance or entity identifier to apply the state machine to.
-	 * @param {boolean} [persistent=false] - Whether the state persists after exiting the world.
-	 *   
 	 * @remarks
 	 * - If a string (entity identifier) is provided, the state machine will be applied to all entities of that type.
 	 * - If an `Entity` instance is provided, only that specific entity will be affected.
 	 */
-	activate(actor: string | Entity, persistent: boolean = false): void
+	activate(actor: string | Entity): void
 
     /**
 	 * Deactivates the state machine.
