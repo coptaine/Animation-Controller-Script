@@ -61,7 +61,7 @@ export class StateMachines {
 
 	#run(actor, controller, persistent) {
 		const states = controller.states
-		let controllerId = persistent ? controller.toString() : this.#Id
+		let controllerId = persistent ? controller.toString().replace(/\s+/g, "") : this.#Id
 		let actorState
 
 		if (persistent) {
