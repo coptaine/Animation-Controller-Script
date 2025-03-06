@@ -9,7 +9,3 @@ To use, import StateMachine then follow this structure:
 
 Note: You can omit onEntry, onExit and transitions if you don't need them.
 
-Here's the video of how the example pack works.
-
-[![YouTube](http://i.ytimg.com/vi/jDQZ9iBM3j0/hqdefault.jpg)](https://www.youtube.com/watch?v=jDQZ9iBM3j0)
-
